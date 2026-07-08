@@ -24,6 +24,10 @@
   header{background:var(--accent);color:#fff;border-radius:14px;padding:16px 18px;margin:6px 0 16px}
   header h1{margin:0;font-size:19px;font-weight:700}
   header p{margin:4px 0 0;font-size:13px;opacity:.9}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .brand-mark{width:42px;height:42px;flex:0 0 42px}
+  .brand-name{font-size:21px;font-weight:800;letter-spacing:3px;line-height:1}
+  .brand-sub{font-size:10.5px;opacity:.92;letter-spacing:.5px;margin-top:3px;text-transform:uppercase}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
   label.fld{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
   .req{color:var(--warn)}
@@ -52,6 +56,8 @@
     border:1.5px dashed var(--accent);color:var(--accent);border-radius:10px;padding:14px;
     font-weight:700;font-size:15px;cursor:pointer;width:100%}
   .photo-hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .photo-row{display:flex;gap:8px}
+  .photo-row .photo-btn{flex:1;width:auto;min-width:0}
   .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
   .thumb{position:relative;width:74px;height:74px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
   .thumb img{width:100%;height:100%;object-fit:cover}
@@ -71,10 +77,16 @@
   .linkish{background:none;border:none;color:var(--accent);font-weight:600;font-size:13px;
     text-decoration:underline;cursor:pointer;display:block;margin:12px auto 0;font-family:inherit}
   .foot{color:var(--muted);font-size:12px;text-align:center;margin:16px 0 0}
+  .openhint{background:#fff7e6;border:1px solid #f0c869;color:#8a5a00;border-radius:12px;padding:11px 13px;margin:6px 0 14px;font-size:13px;line-height:1.45}
+  .openhint b{font-weight:700}
   #report{position:fixed;left:-99999px;top:0;width:794px;background:#fff;color:#111}
   #report .rhead{background:var(--accent);color:#fff;padding:22px 26px}
   #report .rtitle{font-size:26px;font-weight:800;letter-spacing:.4px}
   #report .rsub{font-size:14px;opacity:.92;margin-top:3px}
+  #report .rbrand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  #report .rmark{width:46px;height:46px;flex:0 0 46px}
+  #report .rname{font-size:23px;font-weight:800;letter-spacing:3px;line-height:1;color:#fff}
+  #report .rnamesub{font-size:11px;opacity:.92;letter-spacing:.5px;margin-top:3px;text-transform:uppercase}
   #report .rtable{width:100%;border-collapse:collapse}
   #report .rtable td{border-bottom:1px solid #e2e6ec;padding:11px 26px;font-size:16px;vertical-align:top;color:#1a2230}
   #report .rl{width:36%;font-weight:700;color:#33405a}
@@ -85,7 +97,15 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="openhint">ℹ️ Ako <b>Napravi report</b> ne radi (npr. link je otvoren iz Vibera/Telegrama), otvori ga u <b>Chrome</b> ili <b>Safari</b>: u meniju (<b>⋮</b> ili ikonica dijeljenja) izaberi <b>„Otvori u pregledniku".</b></div>
   <header>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="#ffffff"/><g fill="#1e6fd9"><circle cx="13" cy="13" r="2.4"/><circle cx="20" cy="13" r="2.4"/><circle cx="27" cy="13" r="2.4"/><circle cx="13" cy="20" r="2.4"/><circle cx="20" cy="20" r="2.4"/><circle cx="27" cy="20" r="2.4"/><circle cx="13" cy="27" r="2.4"/><circle cx="20" cy="27" r="2.4"/><circle cx="27" cy="27" r="2.4"/></g></svg>
+      <div>
+        <div class="brand-name">ASCO</div>
+        <div class="brand-sub">Sistem kontrole kvaliteta</div>
+      </div>
+    </div>
     <h1>Prijava problema</h1>
     <p>Popuni, dodaj slike i pošalji — sve u jednom PDF-u</p>
   </header>
@@ -166,14 +186,18 @@
 
   <div class="card">
     <label class="fld">Slike</label>
-    <div class="photo-btn" id="photoBtn">📷 &nbsp;Uslikaj ili dodaj slike</div>
+    <div class="photo-row">
+      <div class="photo-btn" id="photoBtnCam">📷 Uslikaj</div>
+      <div class="photo-btn" id="photoBtnGal">🖼️ Iz galerije</div>
+    </div>
+    <input type="file" id="fotoCam" accept="image/*" capture="environment" class="hidden">
     <input type="file" id="fotoInput" accept="image/*" multiple class="hidden">
-    <div class="photo-hint">Možeš uslikati odmah ili izabrati iz galerije. Preporuka: detalj greške + prije/poslije.</div>
+    <div class="photo-hint">„Uslikaj" otvara kameru, „Iz galerije" bira postojeće slike. Preporuka: detalj greške + prije/poslije.</div>
     <div class="thumbs" id="thumbs"></div>
   </div>
 
   <div class="card">
-    <label class="fld" for="prijavio">Ko prijavljuje</label>
+    <label class="fld" for="prijavio">Ko prijavljuje <span class="hint">(zapamti se na ovom telefonu)</span></label>
     <input type="text" id="prijavio" placeholder="tvoje ime">
     <div class="err-msg" id="errMsg">Popuni obavezna polja: Proizvod, Vrsta greške i Opis.</div>
   </div>
@@ -228,17 +252,27 @@
   });
 
   var fotoInput = document.getElementById('fotoInput');
-  document.getElementById('photoBtn').addEventListener('click', function(){ fotoInput.click(); });
-  fotoInput.addEventListener('change', function(e){
-    var files = Array.prototype.slice.call(e.target.files||[]);
+  var fotoCam = document.getElementById('fotoCam');
+  document.getElementById('photoBtnGal').addEventListener('click', function(){ fotoInput.click(); });
+  document.getElementById('photoBtnCam').addEventListener('click', function(){ fotoCam.click(); });
+  function handleFiles(e){
+    var input=e.target;
+    var files = Array.prototype.slice.call(input.files||[]);
     var chain = Promise.resolve();
     files.forEach(function(f){
       if(!f.type || f.type.indexOf('image/')!==0) return;
       chain = chain.then(function(){ return downscale(f, 1500, 0.75); })
                    .then(function(url){ photos.push({dataUrl:url}); renderThumbs(); });
     });
-    chain.then(function(){ fotoInput.value=''; });
-  });
+    chain.then(function(){ input.value=''; });
+  }
+  fotoInput.addEventListener('change', handleFiles);
+  fotoCam.addEventListener('change', handleFiles);
+
+  // Zapamti ime onoga ko prijavljuje (na ovom telefonu / pregledniku)
+  var prijavioEl = document.getElementById('prijavio');
+  try{ var savedIme = localStorage.getItem('prijavaIme'); if(savedIme) prijavioEl.value = savedIme; }catch(e){}
+  prijavioEl.addEventListener('input', function(){ try{ localStorage.setItem('prijavaIme', prijavioEl.value.trim()); }catch(e){} });
 
   function downscale(file, maxDim, quality){
     return new Promise(function(resolve){
@@ -344,9 +378,14 @@
     }).join('');
     var ph = photos.length ? '<div class="rphlabel">Slike:</div><div class="rphotos">'+
       photos.map(function(p){ return '<img src="'+p.dataUrl+'">'; }).join('')+'</div>' : '';
+    var mark='<svg class="rmark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="#ffffff"/><g fill="#1e6fd9"><circle cx="13" cy="13" r="2.4"/><circle cx="20" cy="13" r="2.4"/><circle cx="27" cy="13" r="2.4"/><circle cx="13" cy="20" r="2.4"/><circle cx="20" cy="20" r="2.4"/><circle cx="27" cy="20" r="2.4"/><circle cx="13" cy="27" r="2.4"/><circle cx="20" cy="27" r="2.4"/><circle cx="27" cy="27" r="2.4"/></g></svg>';
     document.getElementById('report').innerHTML =
-      '<div class="rhead"><div class="rtitle">PRIJAVA PROBLEMA</div>'+
-      '<div class="rsub">ASCO — QC / reklamacija</div></div>'+
+      '<div class="rhead">'+
+        '<div class="rbrand">'+mark+'<div><div class="rname">ASCO</div>'+
+        '<div class="rnamesub">Sistem kontrole kvaliteta</div></div></div>'+
+        '<div class="rtitle">PRIJAVA PROBLEMA</div>'+
+        '<div class="rsub">QC / reklamacija</div>'+
+      '</div>'+
       '<table class="rtable">'+rowsHtml+'</table>'+ph;
   }
 
@@ -387,7 +426,7 @@
       document.getElementById('output').scrollIntoView({behavior:'smooth',block:'center'});
     }).catch(function(){
       btnMake.disabled=false; btnMake.textContent='Napravi report ▾';
-      alert('Za PDF je potreban internet (učitavanje biblioteka). Provjeri konekciju pa pokušaj ponovo.');
+      btnMake.textContent="Ne radi? Otvori u Chrome/Safari"; try{window.scrollTo(0,0);}catch(e){}
     });
   });
 
