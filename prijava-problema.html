@@ -197,7 +197,7 @@
   </div>
 
   <div class="card">
-    <label class="fld" for="prijavio">Ko prijavljuje</label>
+    <label class="fld" for="prijavio">Ko prijavljuje <span class="hint">(zapamti se na ovom telefonu)</span></label>
     <input type="text" id="prijavio" placeholder="tvoje ime">
     <div class="err-msg" id="errMsg">Popuni obavezna polja: Proizvod, Vrsta greške i Opis.</div>
   </div>
@@ -268,6 +268,11 @@
   }
   fotoInput.addEventListener('change', handleFiles);
   fotoCam.addEventListener('change', handleFiles);
+
+  // Zapamti ime onoga ko prijavljuje (na ovom telefonu / pregledniku)
+  var prijavioEl = document.getElementById('prijavio');
+  try{ var savedIme = localStorage.getItem('prijavaIme'); if(savedIme) prijavioEl.value = savedIme; }catch(e){}
+  prijavioEl.addEventListener('input', function(){ try{ localStorage.setItem('prijavaIme', prijavioEl.value.trim()); }catch(e){} });
 
   function downscale(file, maxDim, quality){
     return new Promise(function(resolve){
