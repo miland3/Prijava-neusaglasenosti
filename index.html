@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Prijava problema — ASCO QC</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f2f4f7; --card:#ffffff; --ink:#1a2230; --muted:#6b7688;
+    --line:#e2e6ec; --accent:#1e6fd9; --accent-ink:#fff;
+    --ok:#1a9c6e; --warn:#c8362f; --pill:#eef2f7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.4; -webkit-text-size-adjust:100%;
+    padding:0 0 130px;
+  }
+  .wrap{max-width:540px;margin:0 auto;padding:14px}
+  header{background:var(--accent);color:#fff;border-radius:14px;padding:16px 18px;margin:6px 0 16px}
+  header h1{margin:0;font-size:19px;font-weight:700}
+  header p{margin:4px 0 0;font-size:13px;opacity:.9}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  label.fld{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+  .req{color:var(--warn)}
+  .hint{font-weight:400;color:var(--muted);font-size:12px}
+  input[type=text],input[type=number],textarea{
+    width:100%;font-size:16px;color:var(--ink);background:#fff;
+    border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-family:inherit}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{min-height:72px;resize:vertical}
+  .qty{display:flex;gap:8px}
+  .qty>div{flex:1}
+  .qty .qlbl{font-size:12px;color:var(--muted);margin-bottom:4px;text-align:center}
+  .qty input{text-align:center}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg-btn,.pill{
+    flex:1;min-width:88px;text-align:center;cursor:pointer;user-select:none;
+    background:var(--pill);border:1.5px solid var(--line);border-radius:10px;
+    padding:11px 10px;font-size:14px;font-weight:600;color:var(--ink);transition:.12s}
+  .seg-btn.active,.pill.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{flex:0 1 auto;min-width:0;font-weight:500}
+  .hidden{display:none}
+  .err-msg{color:var(--warn);font-size:13px;font-weight:600;margin-top:8px;display:none}
+  .invalid{border-color:var(--warn)!important}
+  .photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--pill);
+    border:1.5px dashed var(--accent);color:var(--accent);border-radius:10px;padding:14px;
+    font-weight:700;font-size:15px;cursor:pointer;width:100%}
+  .photo-hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .thumb{position:relative;width:74px;height:74px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;width:20px;height:20px;
+    border-radius:50%;font-size:13px;line-height:20px;text-align:center;cursor:pointer;font-weight:700}
+  .actionbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);
+    border-top:1px solid var(--line);padding:12px 14px;backdrop-filter:blur(6px)}
+  .actionbar .inner{max-width:540px;margin:0 auto;display:flex;gap:10px}
+  .btn{flex:1;text-align:center;border:none;border-radius:12px;padding:14px 12px;
+    font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn:disabled{opacity:.6}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-ghost{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}
+  .outbtns{display:flex;gap:10px;margin-top:4px}
+  .copied{color:var(--ok);font-weight:700;font-size:13px;text-align:center;margin-top:10px;display:none}
+  .ready{color:var(--ok);font-weight:700;font-size:14px;margin:0 0 10px}
+  .linkish{background:none;border:none;color:var(--accent);font-weight:600;font-size:13px;
+    text-decoration:underline;cursor:pointer;display:block;margin:12px auto 0;font-family:inherit}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin:16px 0 0}
+  #report{position:fixed;left:-99999px;top:0;width:794px;background:#fff;color:#111}
+  #report .rhead{background:var(--accent);color:#fff;padding:22px 26px}
+  #report .rtitle{font-size:26px;font-weight:800;letter-spacing:.4px}
+  #report .rsub{font-size:14px;opacity:.92;margin-top:3px}
+  #report .rtable{width:100%;border-collapse:collapse}
+  #report .rtable td{border-bottom:1px solid #e2e6ec;padding:11px 26px;font-size:16px;vertical-align:top;color:#1a2230}
+  #report .rl{width:36%;font-weight:700;color:#33405a}
+  #report .rphlabel{padding:16px 26px 4px;font-weight:700;font-size:16px;color:#33405a}
+  #report .rphotos{display:flex;flex-wrap:wrap;gap:10px;padding:8px 26px 26px}
+  #report .rphotos img{width:calc(50% - 5px);border:1px solid #cfd6e0;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Prijava problema</h1>
+    <p>Popuni, dodaj slike i pošalji — sve u jednom PDF-u</p>
+  </header>
+
+  <div class="card">
+    <label class="fld" for="proizvod">Proizvod / pozicija <span class="req">*</span></label>
+    <input type="text" id="proizvod" placeholder="npr. SD compact – usipni koš">
+  </div>
+
+  <div class="card">
+    <label class="fld">Vrsta greške <span class="req">*</span></label>
+    <div class="seg" id="greska" data-value="">
+      <div class="seg-btn" data-val="interna">Interna (naša)</div>
+      <div class="seg-btn" data-val="eksterna">Eksterna (dobavljač)</div>
+    </div>
+    <div id="dobavljac-wrap" class="hidden" style="margin-top:12px">
+      <label class="fld" for="dobavljac">Dobavljač <span class="hint">(ako se zna)</span></label>
+      <input type="text" id="dobavljac" placeholder="ime dobavljača">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Količina <span class="hint">(ako ne znaš, ostavi 1)</span></label>
+    <div class="qty">
+      <div><div class="qlbl">Serija</div><input type="number" id="qSerija" value="1" min="0" inputmode="numeric"></div>
+      <div><div class="qlbl">Provjereno</div><input type="number" id="qProvjereno" value="1" min="0" inputmode="numeric"></div>
+      <div><div class="qlbl">Neispravno</div><input type="number" id="qNeispravno" value="1" min="0" inputmode="numeric"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Kako je uočeno</label>
+    <div class="seg" id="uoceno" data-value="vizuelno">
+      <div class="seg-btn active" data-val="vizuelno">Vizuelno</div>
+      <div class="seg-btn" data-val="mjerenje">Mjerenje</div>
+    </div>
+    <div id="mjerenje-wrap" class="hidden" style="margin-top:12px">
+      <label class="fld" for="vrijednosti">Izmjerene vrijednosti</label>
+      <input type="text" id="vrijednosti" placeholder="npr. traženo 10 mm, izmjereno 12,4 mm">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="opis">Opis problema <span class="req">*</span></label>
+    <textarea id="opis" placeholder="Šta tačno ne valja i gdje..."></textarea>
+  </div>
+
+  <div class="card">
+    <label class="fld">Uzrok / kategorija <span class="hint">(ako se zna — može više)</span></label>
+    <div class="pills" id="uzrok">
+      <div class="pill" data-val="Ljudska greška">Ljudska greška</div>
+      <div class="pill" data-val="Materijal">Materijal</div>
+      <div class="pill" data-val="Mašina / Alat">Mašina / Alat</div>
+      <div class="pill" data-val="Proces / Metoda">Proces / Metoda</div>
+      <div class="pill" data-val="Mjerenje">Mjerenje</div>
+      <div class="pill" data-val="Okolina">Okolina</div>
+      <div class="pill" data-val="Dokumentacija">Dokumentacija</div>
+      <div class="pill" data-val="Dobavljač">Dobavljač</div>
+      <div class="pill" data-val="Ostalo">Ostalo</div>
+    </div>
+    <div id="ostalo-wrap" class="hidden" style="margin-top:12px">
+      <input type="text" id="ostaloTekst" placeholder="Ostalo — upiši šta">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Ponavljajuća greška?</label>
+    <div class="seg" id="ponavljanje" data-value="ne">
+      <div class="seg-btn" data-val="da">Da</div>
+      <div class="seg-btn active" data-val="ne">Ne (prvi put)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="uradjeno">Šta je urađeno / prijedlog <span class="hint">(ako ništa — ostavi prazno)</span></label>
+    <textarea id="uradjeno" placeholder="npr. interna prepravka – izbušene rupe, pričvršćeno vijcima bez zavarivanja"></textarea>
+  </div>
+
+  <div class="card">
+    <label class="fld">Slike</label>
+    <div class="photo-btn" id="photoBtn">📷 &nbsp;Uslikaj ili dodaj slike</div>
+    <input type="file" id="fotoInput" accept="image/*" multiple class="hidden">
+    <div class="photo-hint">Možeš uslikati odmah ili izabrati iz galerije. Preporuka: detalj greške + prije/poslije.</div>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="prijavio">Ko prijavljuje</label>
+    <input type="text" id="prijavio" placeholder="tvoje ime">
+    <div class="err-msg" id="errMsg">Popuni obavezna polja: Proizvod, Vrsta greške i Opis.</div>
+  </div>
+
+  <div id="output" class="card hidden">
+    <p class="ready" id="readyMsg">✓ Report je spreman</p>
+    <div class="outbtns">
+      <button class="btn btn-primary" id="btnShare">📤 Pošalji PDF</button>
+      <button class="btn btn-ghost" id="btnDownload">⬇️ Preuzmi</button>
+    </div>
+    <button class="linkish" id="btnCopy">ili kopiraj samo tekst (bez slika)</button>
+    <div class="copied" id="copiedMsg">✓ Tekst kopiran</div>
+  </div>
+
+  <p class="foot">Sve — podaci i slike — ide kao jedan PDF. Ne moraš slati ništa zasebno.</p>
+</div>
+
+<div class="actionbar">
+  <div class="inner">
+    <button class="btn btn-primary" id="btnMake">Napravi report ▾</button>
+  </div>
+</div>
+
+<div id="report" aria-hidden="true"></div>
+
+<script>
+(function(){
+  "use strict";
+  var photos = [];
+  var builtBlob = null;
+  var builtDoc  = null;
+  var builtName = "prijava.pdf";
+
+  document.querySelectorAll('.seg').forEach(function(group){
+    group.querySelectorAll('.seg-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('.seg-btn').forEach(function(b){b.classList.remove('active','invalid');});
+        btn.classList.add('active');
+        group.setAttribute('data-value', btn.getAttribute('data-val'));
+        var v = btn.getAttribute('data-val');
+        if(group.id==='greska') document.getElementById('dobavljac-wrap').classList.toggle('hidden', v!=='eksterna');
+        if(group.id==='uoceno') document.getElementById('mjerenje-wrap').classList.toggle('hidden', v!=='mjerenje');
+      });
+    });
+  });
+  document.querySelectorAll('#uzrok .pill').forEach(function(p){
+    p.addEventListener('click', function(){
+      p.classList.toggle('active');
+      var ost = document.querySelector('#uzrok .pill[data-val="Ostalo"]');
+      document.getElementById('ostalo-wrap').classList.toggle('hidden', !ost.classList.contains('active'));
+    });
+  });
+
+  var fotoInput = document.getElementById('fotoInput');
+  document.getElementById('photoBtn').addEventListener('click', function(){ fotoInput.click(); });
+  fotoInput.addEventListener('change', function(e){
+    var files = Array.prototype.slice.call(e.target.files||[]);
+    var chain = Promise.resolve();
+    files.forEach(function(f){
+      if(!f.type || f.type.indexOf('image/')!==0) return;
+      chain = chain.then(function(){ return downscale(f, 1500, 0.75); })
+                   .then(function(url){ photos.push({dataUrl:url}); renderThumbs(); });
+    });
+    chain.then(function(){ fotoInput.value=''; });
+  });
+
+  function downscale(file, maxDim, quality){
+    return new Promise(function(resolve){
+      var rd = new FileReader();
+      rd.onload = function(){
+        var img = new Image();
+        img.onload = function(){
+          var w=img.width, h=img.height;
+          if(w>h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+          else if(h>=w && h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+          var c=document.createElement('canvas'); c.width=w; c.height=h;
+          c.getContext('2d').drawImage(img,0,0,w,h);
+          resolve(c.toDataURL('image/jpeg', quality));
+        };
+        img.onerror=function(){ resolve(rd.result); };
+        img.src = rd.result;
+      };
+      rd.readAsDataURL(file);
+    });
+  }
+
+  function renderThumbs(){
+    var box = document.getElementById('thumbs');
+    box.innerHTML='';
+    photos.forEach(function(p, i){
+      var d=document.createElement('div'); d.className='thumb';
+      d.innerHTML='<img src="'+p.dataUrl+'"><div class="rm" data-i="'+i+'">×</div>';
+      box.appendChild(d);
+    });
+    box.querySelectorAll('.rm').forEach(function(x){
+      x.addEventListener('click', function(){ photos.splice(parseInt(x.getAttribute('data-i'),10),1); renderThumbs(); });
+    });
+  }
+
+  function val(id){ return (document.getElementById(id).value||'').trim(); }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function pad(n){ return (n<10?'0':'')+n; }
+  function dispDate(d){ return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'.'; }
+  function fileDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function slug(s){ return (s||'prijava').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,40)||'prijava'; }
+
+  function getData(){
+    var proizvod=val('proizvod');
+    var greska=document.getElementById('greska').getAttribute('data-value');
+    var opis=val('opis');
+    var ok=true;
+    document.getElementById('proizvod').classList.toggle('invalid', !proizvod); if(!proizvod) ok=false;
+    document.getElementById('opis').classList.toggle('invalid', !opis); if(!opis) ok=false;
+    var gEl=document.getElementById('greska');
+    if(!greska){ ok=false; gEl.querySelectorAll('.seg-btn').forEach(function(b){b.classList.add('invalid');}); }
+    document.getElementById('errMsg').style.display = ok?'none':'block';
+    if(!ok){ document.getElementById('errMsg').scrollIntoView({behavior:'smooth',block:'center'}); return null; }
+
+    var uoceno=document.getElementById('uoceno').getAttribute('data-value');
+    var uzroci=[];
+    document.querySelectorAll('#uzrok .pill.active').forEach(function(p){
+      var v=p.getAttribute('data-val');
+      if(v==='Ostalo'){ var t=val('ostaloTekst'); uzroci.push(t?'Ostalo: '+t:'Ostalo'); }
+      else uzroci.push(v);
+    });
+    var now=new Date();
+    return {
+      proizvod:proizvod,
+      greskaTxt: greska==='eksterna'?'eksterna (dobavljač)':'interna (naša)',
+      odgovornost: greska==='eksterna'?'Dobavljač':'Interno',
+      dobavljac: greska==='eksterna'?val('dobavljac'):'',
+      kolicina:'serija '+(val('qSerija')||'1')+' / provjereno '+(val('qProvjereno')||'1')+' / neispravno '+(val('qNeispravno')||'1'),
+      uoceno:uoceno,
+      vrijednosti: uoceno==='mjerenje'?val('vrijednosti'):'',
+      opis:opis,
+      uzrok: uzroci.length?uzroci.join(', '):'',
+      ponav: document.getElementById('ponavljanje').getAttribute('data-value'),
+      uradjeno: val('uradjeno'),
+      prijavio: val('prijavio'),
+      datum: dispDate(now), fdatum: fileDate(now)
+    };
+  }
+
+  function rows(d){
+    var r=[['Proizvod/pozicija',d.proizvod],['Greška',d.greskaTxt],['Odgovornost',d.odgovornost]];
+    if(d.dobavljac) r.push(['Dobavljač',d.dobavljac]);
+    r.push(['Količina',d.kolicina]);
+    r.push(['Uočeno',d.uoceno]);
+    if(d.vrijednosti) r.push(['Izmjerene vrijednosti',d.vrijednosti]);
+    r.push(['Opis',d.opis]);
+    r.push(['Uzrok', d.uzrok||'—']);
+    r.push(['Ponavljanje',d.ponav]);
+    r.push(['Urađeno/prijedlog', d.uradjeno||'—']);
+    r.push(['Prijavio', (d.prijavio||'—')+'   |   '+d.datum]);
+    return r;
+  }
+
+  function buildText(d){
+    var L=['📋 PRIJAVA PROBLEMA',''];
+    rows(d).forEach(function(x){ L.push(x[0]+': '+x[1]); });
+    if(photos.length) L.push('Slike: '+photos.length+' (u prilogu)');
+    return L.join('\n');
+  }
+
+  function buildReportNode(d){
+    var rowsHtml = rows(d).map(function(x){
+      return '<tr><td class="rl">'+esc(x[0])+'</td><td>'+esc(x[1])+'</td></tr>';
+    }).join('');
+    var ph = photos.length ? '<div class="rphlabel">Slike:</div><div class="rphotos">'+
+      photos.map(function(p){ return '<img src="'+p.dataUrl+'">'; }).join('')+'</div>' : '';
+    document.getElementById('report').innerHTML =
+      '<div class="rhead"><div class="rtitle">PRIJAVA PROBLEMA</div>'+
+      '<div class="rsub">ASCO — QC / reklamacija</div></div>'+
+      '<table class="rtable">'+rowsHtml+'</table>'+ph;
+  }
+
+  function buildPdf(d){
+    return new Promise(function(resolve,reject){
+      if(typeof html2canvas==='undefined' || !window.jspdf){ reject(new Error('libs')); return; }
+      buildReportNode(d);
+      setTimeout(function(){
+        html2canvas(document.getElementById('report'),{scale:2,backgroundColor:'#ffffff',useCORS:true})
+        .then(function(canvas){
+          var jsPDF=window.jspdf.jsPDF;
+          var pdf=new jsPDF('p','pt','a4');
+          var pageW=pdf.internal.pageSize.getWidth();
+          var pageH=pdf.internal.pageSize.getHeight();
+          var imgW=pageW;
+          var imgH=canvas.height*(pageW/canvas.width);
+          var img=canvas.toDataURL('image/jpeg',0.85);
+          var left=imgH, pos=0;
+          pdf.addImage(img,'JPEG',0,pos,imgW,imgH); left-=pageH;
+          while(left>0){ pos-=pageH; pdf.addPage(); pdf.addImage(img,'JPEG',0,pos,imgW,imgH); left-=pageH; }
+          resolve(pdf);
+        }).catch(reject);
+      },60);
+    });
+  }
+
+  var btnMake=document.getElementById('btnMake');
+  btnMake.addEventListener('click', function(){
+    var d=getData(); if(!d) return;
+    btnMake.disabled=true; btnMake.textContent='Pripremam PDF...';
+    buildPdf(d).then(function(pdf){
+      builtDoc=pdf; builtBlob=pdf.output('blob');
+      builtName='Prijava_'+slug(d.proizvod)+'_'+d.fdatum+'.pdf';
+      document.getElementById('output').classList.remove('hidden');
+      document.getElementById('readyMsg').textContent='✓ Report je spreman'+(photos.length?' ('+photos.length+' sl.)':'');
+      document.getElementById('copiedMsg').style.display='none';
+      btnMake.disabled=false; btnMake.textContent='Napravi ponovo ▾';
+      document.getElementById('output').scrollIntoView({behavior:'smooth',block:'center'});
+    }).catch(function(){
+      btnMake.disabled=false; btnMake.textContent='Napravi report ▾';
+      alert('Za PDF je potreban internet (učitavanje biblioteka). Provjeri konekciju pa pokušaj ponovo.');
+    });
+  });
+
+  document.getElementById('btnShare').addEventListener('click', function(){
+    if(!builtBlob){ return; }
+    try{
+      var file=new File([builtBlob], builtName, {type:'application/pdf'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file], title:'Prijava problema'}).catch(function(){});
+        return;
+      }
+    }catch(e){}
+    if(builtDoc) builtDoc.save(builtName);
+    alert('PDF je preuzet. Otvori Viber/Telegram i priloži ga (spajalica/attach).');
+  });
+
+  document.getElementById('btnDownload').addEventListener('click', function(){
+    if(builtDoc) builtDoc.save(builtName);
+  });
+
+  document.getElementById('btnCopy').addEventListener('click', function(){
+    var d=getData(); if(!d) return;
+    var txt=buildText(d);
+    var done=false;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ document.getElementById('copiedMsg').style.display='block'; })
+      .catch(function(){});
+      done=true;
+    }
+    if(!done){
+      var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+      ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta);
+      document.getElementById('copiedMsg').style.display='block';
+    }
+  });
+})();
+</script>
+</body>
+</html>
