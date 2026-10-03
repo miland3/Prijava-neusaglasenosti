@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="bs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prava pristupa</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; background: #f6f7f9; color: #1d2330; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .kartica { background: #fff; border: 1px solid #dde1e7; border-radius: 10px; padding: 16px; margin-top: 16px; }
+  .znacka { display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 999px; font-size: 13px; }
+  .F { background: #e3ecff; color: #1f4fbf; }
+  .D { background: #e3f6ea; color: #1d7a3e; }
+  button, select, input { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid #c4cad4; }
+  button { background: #1f4fbf; color: #fff; border: none; cursor: pointer; }
+  button.zabranjeno { background: #b3261e; }
+  .red { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eceff3; }
+  #poruka { margin-top: 12px; padding: 10px; border-radius: 8px; display: none; }
+  #poruka.ok { display: block; background: #e3f6ea; color: #1d7a3e; }
+  #poruka.greska { display: block; background: #fde7e5; color: #b3261e; }
+  .sitno { font-size: 13px; color: #5b6475; }
+</style>
+</head>
+<body>
+<header>
+  <h2>Prijavljen: <span id="korisnik">...</span></h2>
+  <a href="/logout">Odjava</a>
+</header>
+<div id="prava"></div>
+
+<div class="kartica">
+  <div class="red">
+    <label>Vrsta podataka: <select id="tip"></select></label>
+    <button id="btnPregled" data-f="F_PREGLED">Pregled</button>
+    <button id="btnIzvoz" data-f="F_IZVOZ">Izvoz (CSV)</button>
+  </div>
+  <div class="red" style="margin-top:12px">
+    <input id="opis" placeholder="Opis novog zapisa" style="flex:1">
+    <button id="btnUnos" data-f="F_UNOS">Unos</button>
+  </div>
+  <p class="sitno">
+    <label><input type="checkbox" id="sve"> Prikaži i zabranjeno (test backenda)</label><br>
+    Frontend samo sakriva dugmad. Uključi ovu opciju i probaj: backend će i dalje vratiti 403.
+  </p>
+  <div id="poruka"></div>
+  <table id="tabela"></table>
+</div>
+
+<script>
+const SVI_TIPOVI = ['PRIJAVE', 'NARUDZBE', 'PONUDE'];
+let prava = [];
+let csrf = null;
+
+function poruka(tekst, ok) {
+  const el = document.getElementById('poruka');
+  el.textContent = tekst;
+  el.className = ok ? 'ok' : 'greska';
+}
+
+function osvjeziPrikaz() {
+  const sve = document.getElementById('sve').checked;
+  const izbor = document.getElementById('tip');
+  const trenutni = izbor.value;
+  izbor.innerHTML = '';
+  SVI_TIPOVI
+    .filter(t => sve || prava.includes('D_' + t))
+    .forEach(t => izbor.add(new Option(t, t)));
+  if ([...izbor.options].some(o => o.value === trenutni)) izbor.value = trenutni;
+
+  document.querySelectorAll('button[data-f]').forEach(b => {
+    const dozvoljeno = prava.includes(b.dataset.f);
+    b.hidden = !dozvoljeno && !sve;
+    b.classList.toggle('zabranjeno', !dozvoljeno);
+  });
+  document.getElementById('opis').hidden = document.getElementById('btnUnos').hidden;
+}
+
+async function provjeri(odgovor) {
+  if (odgovor.status === 403) throw new Error('403 Zabranjeno: nemaš pravo na ovu funkciju ili ove podatke.');
+  if (!odgovor.ok) throw new Error('Greška ' + odgovor.status);
+  return odgovor;
+}
+
+async function pregled() {
+  const tip = document.getElementById('tip').value;
+  document.getElementById('tabela').innerHTML = '';
+  try {
+    const zapisi = await (await provjeri(await fetch('/api/podaci/' + tip))).json();
+    const tabela = document.getElementById('tabela');
+    tabela.innerHTML = '<tr><th>ID</th><th>Datum</th><th>Autor</th><th>Opis</th></tr>';
+    zapisi.forEach(z => {
+      const red = tabela.insertRow();
+      [z.id, z.datum, z.autor, z.opis].forEach(v => red.insertCell().textContent = v);
+    });
+    poruka('Učitano zapisa: ' + zapisi.length, true);
+  } catch (e) { poruka(e.message, false); }
+}
+
+async function unos() {
+  const tip = document.getElementById('tip').value;
+  const opis = document.getElementById('opis').value;
+  try {
+    await provjeri(await fetch('/api/podaci/' + tip, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+      body: JSON.stringify({ opis })
+    }));
+    document.getElementById('opis').value = '';
+    poruka('Zapis sačuvan ✅', true);
+  } catch (e) { poruka(e.message, false); }
+}
+
+async function izvoz() {
+  const tip = document.getElementById('tip').value;
+  try {
+    const blob = await (await provjeri(await fetch('/api/podaci/' + tip + '/izvoz'))).blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = tip + '.csv';
+    a.click();
+    poruka('Izvoz preuzet ✅', true);
+  } catch (e) { poruka(e.message, false); }
+}
+
+async function start() {
+  const ja = await (await fetch('/api/ja')).json();
+  csrf = await (await fetch('/api/csrf')).json();
+  prava = ja.prava;
+  document.getElementById('korisnik').textContent = ja.korisnik;
+  document.getElementById('prava').innerHTML = prava
+    .map(p => `<span class="znacka ${p[0]}">${p}</span>`).join('');
+
+  document.getElementById('btnPregled').addEventListener('click', pregled);
+  document.getElementById('btnUnos').addEventListener('click', unos);
+  document.getElementById('btnIzvoz').addEventListener('click', izvoz);
+  document.getElementById('sve').addEventListener('change', osvjeziPrikaz);
+  osvjeziPrikaz();
+}
+
+start();
+</script>
+</body>
+</html>
