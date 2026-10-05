@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prijava problema — ASCO QC</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="#ffffff"/><g fill="#1e6fd9"><circle cx="13" cy="13" r="2.4"/><circle cx="20" cy="13" r="2.4"/><circle cx="27" cy="13" r="2.4"/><circle cx="13" cy="20" r="2.4"/><circle cx="20" cy="20" r="2.4"/><circle cx="27" cy="20" r="2.4"/><circle cx="13" cy="27" r="2.4"/><circle cx="20" cy="27" r="2.4"/><circle cx="27" cy="27" r="2.4"/></g></svg>
+      <div>
+        <div class="brand-name">ASCO</div>
+        <div class="brand-sub">Sistem kontrole kvaliteta</div>
+      </div>
+    </div>
+    <h1>Prijava problema</h1>
+    <p>Popuni, dodaj slike i pošalji — prijava ide direktno u bazu. <a href="pregled.html">Pregled prijava →</a></p>
+  </header>
+
+  <div id="okCard" class="card hidden"><div class="ok-msg" id="okMsg"></div></div>
+
+  <div class="card">
+    <label class="fld" for="proizvod">Proizvod / pozicija <span class="req">*</span></label>
+    <input type="text" id="proizvod" placeholder="npr. SD compact – usipni koš">
+  </div>
+
+  <div class="card">
+    <label class="fld">Vrsta greške <span class="req">*</span></label>
+    <div class="seg" id="greska" data-value="">
+      <div class="seg-btn" data-val="INTERNA">Interna (naša)</div>
+      <div class="seg-btn" data-val="EKSTERNA">Eksterna (dobavljač)</div>
+    </div>
+    <div id="dobavljac-wrap" class="hidden" style="margin-top:12px">
+      <label class="fld" for="dobavljac">Dobavljač <span class="hint">(ako se zna)</span></label>
+      <input type="text" id="dobavljac" placeholder="ime dobavljača">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Količina <span class="hint">(ako ne znaš, ostavi 1)</span></label>
+    <div class="qty">
+      <div><div class="qlbl">Serija</div><input type="number" id="qSerija" value="1" min="0" inputmode="numeric"></div>
+      <div><div class="qlbl">Provjereno</div><input type="number" id="qProvjereno" value="1" min="0" inputmode="numeric"></div>
+      <div><div class="qlbl">Neispravno</div><input type="number" id="qNeispravno" value="1" min="0" inputmode="numeric"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Kako je uočeno</label>
+    <div class="seg" id="uoceno" data-value="VIZUELNO">
+      <div class="seg-btn active" data-val="VIZUELNO">Vizuelno</div>
+      <div class="seg-btn" data-val="MJERENJE">Mjerenje</div>
+    </div>
+    <div id="mjerenje-wrap" class="hidden" style="margin-top:12px">
+      <label class="fld" for="vrijednosti">Izmjerene vrijednosti</label>
+      <input type="text" id="vrijednosti" placeholder="npr. traženo 10 mm, izmjereno 12,4 mm">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="opis">Opis problema <span class="req">*</span></label>
+    <textarea id="opis" placeholder="Šta tačno ne valja i gdje..."></textarea>
+  </div>
+
+  <div class="card">
+    <label class="fld">Uzrok / kategorija <span class="hint">(ako se zna — može više)</span></label>
+    <div class="pills" id="uzrok">
+      <div class="pill" data-val="Ljudska greška">Ljudska greška</div>
+      <div class="pill" data-val="Materijal">Materijal</div>
+      <div class="pill" data-val="Mašina / Alat">Mašina / Alat</div>
+      <div class="pill" data-val="Proces / Metoda">Proces / Metoda</div>
+      <div class="pill" data-val="Mjerenje">Mjerenje</div>
+      <div class="pill" data-val="Okolina">Okolina</div>
+      <div class="pill" data-val="Dokumentacija">Dokumentacija</div>
+      <div class="pill" data-val="Dobavljač">Dobavljač</div>
+      <div class="pill" data-val="Ostalo">Ostalo</div>
+    </div>
+    <div id="ostalo-wrap" class="hidden" style="margin-top:12px">
+      <input type="text" id="ostaloTekst" placeholder="Ostalo — upiši šta">
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld">Ponavljajuća greška?</label>
+    <div class="seg" id="ponavljanje" data-value="ne">
+      <div class="seg-btn" data-val="da">Da</div>
+      <div class="seg-btn active" data-val="ne">Ne (prvi put)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="uradjeno">Šta je urađeno / prijedlog <span class="hint">(ako ništa — ostavi prazno)</span></label>
+    <textarea id="uradjeno" placeholder="npr. interna prepravka – izbušene rupe, pričvršćeno vijcima"></textarea>
+  </div>
+
+  <div class="card">
+    <label class="fld">Slike</label>
+    <div class="photo-row">
+      <div class="photo-btn" id="photoBtnCam">📷 Uslikaj</div>
+      <div class="photo-btn" id="photoBtnGal">🖼️ Iz galerije</div>
+    </div>
+    <input type="file" id="fotoCam" accept="image/*" capture="environment" class="hidden">
+    <input type="file" id="fotoInput" accept="image/*" multiple class="hidden">
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <div class="card">
+    <label class="fld" for="prijavio">Ko prijavljuje <span class="hint">(zapamti se na ovom uređaju)</span></label>
+    <input type="text" id="prijavio" placeholder="tvoje ime">
+    <div class="err-msg hidden" id="errMsg"></div>
+  </div>
+</div>
+
+<div class="actionbar">
+  <div class="inner">
+    <button class="btn btn-primary" id="btnPosalji">Pošalji prijavu</button>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/forma.js"></script>
+</body>
+</html>
